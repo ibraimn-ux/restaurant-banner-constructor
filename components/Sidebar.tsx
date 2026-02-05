@@ -22,6 +22,38 @@ export const Sidebar: React.FC<SidebarProps> = ({ state, onUpdate, onExport, isE
     }
   };
 
+  // Функция для расчёта новой цены
+  // Форматирует число с точкой для тысяч (5688 -> 5.688)
+  const formatPrice = (value: string) => {
+    const num = parseInt(value.replace(/[^\d]/g, ''));
+    if (isNaN(num)) return '';
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
+  // Функция для расчёта новой цены
+  const calculateDiscountPrice = (original: string, percent: string) => {
+    // Удаляем точку-разделитель тысяч и другие символы
+    const orig = parseFloat(original.replace(/\./g, '').replace(/[^\d]/g, ''));
+    const perc = parseFloat(percent.replace(/[^\d.]/g, '').replace(',', '.'));
+    if (isNaN(orig) || isNaN(perc)) return '';
+    const newPrice = Math.round(orig * (1 - perc / 100));
+    return newPrice > 0 ? formatPrice(newPrice.toString()) + '₸' : '';
+  };
+
+  // Обработчик изменения старой цены
+  const handleOriginalPriceChange = (v: string) => {
+    const formatted = formatPrice(v);
+    const withCurrency = formatted ? formatted + '₸' : '';
+    const newDiscount = calculateDiscountPrice(withCurrency, state.discountPercentage);
+    onUpdate({ originalPrice: withCurrency, priceWithDiscount: newDiscount });
+  };
+
+  // Обработчик изменения процента скидки
+  const handleDiscountPercentageChange = (v: string) => {
+    const newDiscount = calculateDiscountPrice(state.originalPrice, v);
+    onUpdate({ discountPercentage: v, priceWithDiscount: newDiscount });
+  };
+
   return (
     <aside className="w-[420px] bg-white/70 backdrop-blur-2xl border-r border-slate-200 h-full overflow-y-auto flex flex-col shadow-2xl z-[60]">
       <div className="p-8 border-b border-slate-100/50">
@@ -74,7 +106,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ state, onUpdate, onExport, isE
             <Percent size={14} /> Параметры скидки
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <InputGroup label="Число" value={state.discountPercentage} onChange={(v) => onUpdate({ discountPercentage: v })} />
+            <InputGroup label="Число" value={state.discountPercentage} onChange={handleDiscountPercentageChange} />
             <InputGroup 
               label="Тип (текст)" 
               value={state.discountType} 
@@ -93,7 +125,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ state, onUpdate, onExport, isE
             <InputGroup label="Название блюда" value={state.dishName} onChange={(v) => onUpdate({ dishName: v })} />
             <div className="grid grid-cols-2 gap-3">
               <InputGroup label="Новая цена" value={state.priceWithDiscount} onChange={(v) => onUpdate({ priceWithDiscount: v })} />
-              <InputGroup label="Старая цена" value={state.originalPrice} onChange={(v) => onUpdate({ originalPrice: v })} />
+              <InputGroup label="Старая цена" value={state.originalPrice} onChange={handleOriginalPriceChange} />
             </div>
           </div>
         </section>

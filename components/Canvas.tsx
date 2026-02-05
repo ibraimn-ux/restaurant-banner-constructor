@@ -47,6 +47,7 @@ export const Canvas: React.FC<CanvasProps> = ({ state, onUpdateState }) => {
 
   return (
     <div 
+      id="banner-canvas"
       ref={containerRef}
       onWheel={handleWheel}
       style={{ 

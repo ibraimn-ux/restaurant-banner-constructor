@@ -17,9 +17,54 @@ const App: React.FC = () => {
   const handleExport = () => {
     setIsExporting(true);
     setTimeout(() => {
-      setIsExporting(false);
-      alert("Баннер 1080x1080 готов к сохранению!");
-    }, 1500);
+      try {
+        // Находим баннер на странице
+        const bannerElement = document.getElementById('banner-canvas') as HTMLDivElement;
+        if (!bannerElement) {
+          alert("Баннер не найден на странице");
+          setIsExporting(false);
+          return;
+        }
+
+        // Загружаем html2canvas
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        script.onload = () => {
+          const html2canvas = (window as any).html2canvas;
+          
+          // Экспортируем баннер как он есть на экране
+          html2canvas(bannerElement, {
+            backgroundColor: '#000000',
+            scale: 2, // Двойное качество
+            allowTaint: true,
+            useCORS: true,
+            logging: false,
+          }).then((canvas: HTMLCanvasElement) => {
+            canvas.toBlob((blob: Blob | null) => {
+              if (blob) {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                const fileName = (state.dishName || 'banner').replace(/[^\w\s]/g, '');
+                link.download = `${fileName}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                setIsExporting(false);
+              }
+            }, 'image/png');
+          }).catch((error: any) => {
+            alert("Ошибка при экспорте: " + error);
+            setIsExporting(false);
+          });
+        };
+        document.head.appendChild(script);
+      } catch (error) {
+        alert("Ошибка: " + error);
+        setIsExporting(false);
+      }
+    }, 500);
   };
 
   return (
