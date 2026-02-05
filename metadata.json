@@ -1,0 +1,5 @@
+{
+  "name": "Restaurant Promo Banner Constructor",
+  "description": "A high-fidelity Apple-style MVP for creating promotional restaurant banners with draggable elements, image scaling, and live preview.",
+  "requestFramePermissions": []
+}
